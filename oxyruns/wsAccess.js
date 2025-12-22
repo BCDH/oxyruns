@@ -9,7 +9,7 @@ function applicationStarted(pluginWorkspaceAccess) {
   // --------------------------------------------------
   // Helper: create a button that runs a transformation
   // --------------------------------------------------
-  function createScenarioButton(label, scenarioName) {
+  function createScenarioButton(label, scenarioName, tooltip) {
     var button = new Packages.javax.swing.JButton(label);
 
     var action = {
@@ -34,6 +34,10 @@ function applicationStarted(pluginWorkspaceAccess) {
     button.addActionListener(
       new JavaAdapter(Packages.java.awt.event.ActionListener, action)
     );
+
+    if (tooltip) {
+      button.setToolTipText(tooltip);
+    }
 
     return button;
   }
@@ -147,7 +151,9 @@ function applicationStarted(pluginWorkspaceAccess) {
     panel.removeAll();
     for (var i = 0; i < specs.length; i++) {
       var spec = specs[i];
-      panel.add(createScenarioButton(spec.label, spec.scenario));
+      panel.add(
+        createScenarioButton(spec.label, spec.scenario, spec.tooltip)
+      );
     }
     panel.revalidate();
     panel.repaint();
