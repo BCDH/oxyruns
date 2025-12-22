@@ -1,4 +1,5 @@
 .DS_Store
+icons
 # Local development reference (not committed)
 upstream/oxygen-wsaccess-javascript-sample-plugins/
 oxyruns/oxyruns.config.json
