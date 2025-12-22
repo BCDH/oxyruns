@@ -1,8 +1,4 @@
 function applicationStarted(pluginWorkspaceAccess) {
-  Packages.java.lang.System.err.println(
-    "Application started " + pluginWorkspaceAccess
-  );
-
   var projectManager = pluginWorkspaceAccess.getProjectManager();
   var baseToolbarComponents = null;
   var transformationToolbarInfo = null;
@@ -14,7 +10,6 @@ function applicationStarted(pluginWorkspaceAccess) {
   // --------------------------------------------------
   function createScenarioButton(label, scenarioName) {
     var button = new Packages.javax.swing.JButton(label);
-    button.setName("oxyruns-button");
 
     var action = {
       actionPerformed: function (e) {
@@ -42,11 +37,11 @@ function applicationStarted(pluginWorkspaceAccess) {
     return button;
   }
 
-  function stripOxyButtons(components) {
+  function stripOxyRunsComponents(components) {
     var cleaned = [];
     for (var i = 0; i < components.length; i++) {
       var component = components[i];
-      if (!component || component.getName() !== "oxyruns-button") {
+      if (!component || component.getName() !== "oxyruns-panel") {
         cleaned.push(component);
       }
     }
@@ -123,13 +118,9 @@ function applicationStarted(pluginWorkspaceAccess) {
   function buildToolbarComponents(originalComponents, projectUrl) {
     var projectName = getProjectName(projectUrl);
     var specs = getProjectButtonSpecs(projectName);
-    var panel = new Packages.javax.swing.JPanel();
+    var panel = new Packages.javax.swing.JPanel(new Packages.java.awt.FlowLayout());
     panel.setName("oxyruns-panel");
-    panel.setLayout(new Packages.java.awt.FlowLayout());
-    for (var j = 0; j < specs.length; j++) {
-      var spec = specs[j];
-      panel.add(createScenarioButton(spec.label, spec.scenario));
-    }
+    updateOxyRunsPanelContents(panel, specs);
 
     var all = new java.lang.reflect.Array.newInstance(
       Packages.javax.swing.JComponent,
@@ -143,19 +134,34 @@ function applicationStarted(pluginWorkspaceAccess) {
     return all;
   }
 
+  function updateOxyRunsPanelContents(panel, specs) {
+    panel.removeAll();
+    for (var i = 0; i < specs.length; i++) {
+      var spec = specs[i];
+      panel.add(createScenarioButton(spec.label, spec.scenario));
+    }
+    panel.revalidate();
+    panel.repaint();
+  }
+
+  function resolveCurrentProjectUrl() {
+    if (currentProjectUrl) {
+      return currentProjectUrl;
+    }
+    try {
+      return projectManager ? projectManager.getCurrentProjectURL() : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   function updateOxyRunsPanel(projectUrl) {
     if (!oxyRunsPanel) {
       return;
     }
     var projectName = getProjectName(projectUrl);
     var specs = getProjectButtonSpecs(projectName);
-    oxyRunsPanel.removeAll();
-    for (var i = 0; i < specs.length; i++) {
-      var spec = specs[i];
-      oxyRunsPanel.add(createScenarioButton(spec.label, spec.scenario));
-    }
-    oxyRunsPanel.revalidate();
-    oxyRunsPanel.repaint();
+    updateOxyRunsPanelContents(oxyRunsPanel, specs);
   }
 
   // --------------------------------------------------
@@ -171,7 +177,9 @@ function applicationStarted(pluginWorkspaceAccess) {
         transformationToolbarInfo = toolbarInfo;
         var baseComponents = toolbarInfo.getComponents();
         if (!baseToolbarComponents) {
-          baseToolbarComponents = stripOxyButtons(baseComponents);
+          baseToolbarComponents = stripOxyRunsComponents(baseComponents);
+        } else {
+          baseToolbarComponents = stripOxyRunsComponents(baseComponents);
         }
         var projectUrl = null;
         try {
@@ -185,7 +193,10 @@ function applicationStarted(pluginWorkspaceAccess) {
           currentProjectUrl = projectUrl;
         }
         toolbarInfo.setComponents(
-          buildToolbarComponents(baseToolbarComponents, projectUrl || currentProjectUrl)
+          buildToolbarComponents(
+            baseToolbarComponents,
+            projectUrl || resolveCurrentProjectUrl()
+          )
         );
       }
     },
@@ -202,9 +213,6 @@ function applicationStarted(pluginWorkspaceAccess) {
     Packages.ro.sync.exml.workspace.api.standalone.project.ProjectChangeListener,
     {
       projectChanged: function (oldProjectUrl, newProjectUrl) {
-        Packages.java.lang.System.err.println(
-          "Project changed: " + oldProjectUrl + " -> " + newProjectUrl
-        );
         currentProjectUrl = newProjectUrl;
         updateOxyRunsPanel(newProjectUrl);
       },
