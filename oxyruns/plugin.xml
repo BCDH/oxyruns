@@ -2,9 +2,10 @@
 <plugin
  id="org.humanistika.oxyruns"
  name="Run transformation scenarios"
- description="Contribute toolbar buttons to run transformation scenarios on current editor."
+description="OxyRuns is a lightweight oXygen XML Editor plugin that adds a
+customizable toolbar for running predefined transformations with a single click."
  version="1.0"
- vendor="Syncro Soft"
+ vendor="BCDH"
  class="ro.sync.exml.plugin.Plugin"
  classLoaderType="preferReferencedResources">
  <extension type="WorkspaceAccessJS" href="wsAccess.js"/>
