@@ -4,13 +4,31 @@ function applicationStarted(pluginWorkspaceAccess) {
   var transformationToolbarInfo = null;
   var currentProjectUrl = null;
   var oxyRunsPanel = null;
+  var imageUtilities = pluginWorkspaceAccess.getImageUtilities();
   var config = loadConfig();
 
   // --------------------------------------------------
   // Helper: create a button that runs a transformation
   // --------------------------------------------------
-  function createScenarioButton(label, scenarioName, tooltip) {
+  function loadIcon(iconName) {
+    if (!iconName) {
+      return null;
+    }
+    try {
+      var iconUrl = new Packages.java.net.URL(jsDirURL, "icons/" + iconName);
+      return imageUtilities.loadIcon(iconUrl);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function createScenarioButton(label, scenarioName, tooltip, iconName) {
     var button = new Packages.javax.swing.JButton(label);
+    var icon = loadIcon(iconName);
+    if (icon) {
+      button.setText("");
+      button.setIcon(icon);
+    }
 
     var action = {
       actionPerformed: function (e) {
@@ -152,7 +170,12 @@ function applicationStarted(pluginWorkspaceAccess) {
     for (var i = 0; i < specs.length; i++) {
       var spec = specs[i];
       panel.add(
-        createScenarioButton(spec.label, spec.scenario, spec.tooltip)
+        createScenarioButton(
+          spec.label,
+          spec.scenario,
+          spec.tooltip,
+          spec.icon
+        )
       );
     }
     panel.revalidate();
