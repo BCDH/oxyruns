@@ -73,10 +73,6 @@ function applicationStarted(pluginWorkspaceAccess) {
 
   function loadConfig() {
     var defaults = {
-      default: [
-        { label: "NB1", scenario: "NB1" },
-        { label: "NB2", scenario: "NB2" },
-      ],
       projects: {},
     };
 
@@ -126,7 +122,7 @@ function applicationStarted(pluginWorkspaceAccess) {
         return config.projects[key];
       }
     }
-    return config && config.default ? config.default : [];
+    return [];
   }
 
   function buildToolbarComponents(originalComponents, projectUrl) {
