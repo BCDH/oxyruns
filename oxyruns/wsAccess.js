@@ -4,6 +4,7 @@ function applicationStarted(pluginWorkspaceAccess) {
   var transformationToolbarInfo = null;
   var currentProjectUrl = null;
   var oxyRunsPanel = null;
+  var config = loadConfig();
 
   // --------------------------------------------------
   // Helper: create a button that runs a transformation
@@ -61,12 +62,6 @@ function applicationStarted(pluginWorkspaceAccess) {
     }
 
     var urlString = projectUrl.toString();
-    if (urlString.indexOf("TEILex0") !== -1) {
-      return "TEILex0";
-    }
-    if (urlString.indexOf("VSK.P") !== -1) {
-      return "VSK.P";
-    }
     var lastSlash = urlString.lastIndexOf("/");
     var name = lastSlash >= 0 ? urlString.substring(lastSlash + 1) : urlString;
     var dotIndex = name.lastIndexOf(".");
@@ -76,48 +71,66 @@ function applicationStarted(pluginWorkspaceAccess) {
     return name;
   }
 
-  function getProjectButtonSpecs(projectName) {
-    if (projectName == "TEILex0") {
-      return [
-        {
-          label: "Build",
-          scenario: "TEILex0: Generate documentation",
-        },
-        {
-          label: "Schema",
-          scenario: "TEILex0: ODD to RELAX NG XML",
-        },
-      ];
-    }
+  function loadConfig() {
+    var defaults = {
+      default: [
+        { label: "NB1", scenario: "NB1" },
+        { label: "NB2", scenario: "NB2" },
+      ],
+      projects: {},
+    };
 
-    if (projectName == "VSK.P") {
-      return [
-        {
-          label: "V1",
-          scenario: "V1",
-        },
-        {
-          label: "V2",
-          scenario: "V2",
-        },
-      ];
+    try {
+      var configUrl = new Packages.java.net.URL(
+        jsDirURL.toString() + "/oxyruns.config.json"
+      );
+      var reader = new Packages.java.io.BufferedReader(
+        new Packages.java.io.InputStreamReader(configUrl.openStream(), "UTF-8")
+      );
+      var line;
+      var content = "";
+      while ((line = reader.readLine()) !== null) {
+        content += line;
+      }
+      reader.close();
+      var parsed = JSON.parse(content);
+      return parsed || defaults;
+    } catch (e) {
+      return defaults;
     }
+  }
 
-    return [
-      {
-        label: "NB1",
-        scenario: "NB1",
-      },
-      {
-        label: "NB2",
-        scenario: "NB2",
-      },
-    ];
+  function findProjectKey(projectUrl) {
+    if (!projectUrl || !config || !config.projects) {
+      return "";
+    }
+    var urlString = projectUrl.toString();
+    var name = getProjectName(projectUrl);
+    if (config.projects[name]) {
+      return name;
+    }
+    for (var key in config.projects) {
+      if (Object.prototype.hasOwnProperty.call(config.projects, key)) {
+        if (urlString.indexOf(key) !== -1) {
+          return key;
+        }
+      }
+    }
+    return "";
+  }
+
+  function getProjectButtonSpecs(projectUrl) {
+    if (config && config.projects) {
+      var key = findProjectKey(projectUrl);
+      if (key && config.projects[key]) {
+        return config.projects[key];
+      }
+    }
+    return config && config.default ? config.default : [];
   }
 
   function buildToolbarComponents(originalComponents, projectUrl) {
-    var projectName = getProjectName(projectUrl);
-    var specs = getProjectButtonSpecs(projectName);
+    var specs = getProjectButtonSpecs(projectUrl);
     var panel = new Packages.javax.swing.JPanel(new Packages.java.awt.FlowLayout());
     panel.setName("oxyruns-panel");
     updateOxyRunsPanelContents(panel, specs);
@@ -159,8 +172,7 @@ function applicationStarted(pluginWorkspaceAccess) {
     if (!oxyRunsPanel) {
       return;
     }
-    var projectName = getProjectName(projectUrl);
-    var specs = getProjectButtonSpecs(projectName);
+    var specs = getProjectButtonSpecs(projectUrl);
     updateOxyRunsPanelContents(oxyRunsPanel, specs);
   }
 
