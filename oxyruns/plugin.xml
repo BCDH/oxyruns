@@ -3,7 +3,7 @@
  id="org.humanistika.oxyruns"
  name="Run transformation scenarios"
  description="Contribute toolbar buttons to run transformation scenarios on current editor."
- version="1.0"
+ version="1.1"
  vendor="Syncro Soft"
  class="ro.sync.exml.plugin.Plugin"
  classLoaderType="preferReferencedResources">
