@@ -1,7 +1,7 @@
 <!DOCTYPE plugin PUBLIC "-//Oxygen Plugin" "../plugin.dtd">
 <plugin
  id="org.humanistika.oxyruns"
- name="Run transformation scenarios"
+ name="OxyRuns"
 description="OxyRuns is a lightweight oXygen XML Editor plugin that adds a customizable toolbar for running predefined transformations with a single click."
  version="1.1.0"
  vendor="BCDH"
