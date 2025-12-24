@@ -10,26 +10,35 @@ function applicationStarted(pluginWorkspaceAccess) {
   // --------------------------------------------------
   // Helper: create a button that runs a transformation
   // --------------------------------------------------
-  function loadIcon(iconName) {
-    if (!iconName) {
+  function loadIcon(iconSpec) {
+    if (!iconSpec || !iconSpec.standard) {
       return null;
     }
     try {
-      var iconUrl = new Packages.java.net.URL(jsDirURL, "icons/" + iconName);
-      return imageUtilities.loadIcon(iconUrl);
+      var baseDir = new Packages.java.io.File(
+        new Packages.java.net.URL(jsDirURL, ".").toURI()
+      );
+      var iconFile = new Packages.java.io.File(
+        new Packages.java.io.File(baseDir, "icons"),
+        iconSpec.standard
+      );
+      var pluginWorkspace =
+        Packages.ro.sync.exml.workspace.api.PluginWorkspaceProvider.getPluginWorkspace();
+      if (!pluginWorkspace) {
+        return null;
+      }
+      var utilities = pluginWorkspace.getImageUtilities();
+      if (!utilities) {
+        return null;
+      }
+      return utilities.loadIcon(iconFile.toURL());
     } catch (e) {
       return null;
     }
   }
 
-  function createScenarioButton(label, scenarioName, tooltip, iconName) {
-    var button = new Packages.javax.swing.JButton(label);
-    var icon = loadIcon(iconName);
-    if (icon) {
-      button.setText("");
-      button.setIcon(icon);
-    }
-
+  function createScenarioComponent(label, scenarioName, tooltip, iconSpec) {
+    var icon = loadIcon(iconSpec);
     var action = {
       actionPerformed: function (e) {
         var editorAccess = pluginWorkspaceAccess.getCurrentEditorAccess(
@@ -49,6 +58,30 @@ function applicationStarted(pluginWorkspaceAccess) {
       },
     };
 
+    if (icon) {
+      var oxygenAction = new JavaAdapter(
+        Packages.javax.swing.AbstractAction,
+        {
+          actionPerformed: function (e) {
+            action.actionPerformed(e);
+          },
+        },
+        label,
+        icon
+      );
+      if (tooltip) {
+        oxygenAction.putValue(
+          Packages.javax.swing.Action.SHORT_DESCRIPTION,
+          tooltip
+        );
+      }
+      return Packages.ro.sync.exml.workspace.api.standalone.ui.OxygenUIComponentsFactory.createToolbarButton(
+        oxygenAction,
+        false
+      );
+    }
+
+    var button = new Packages.javax.swing.JButton(label);
     button.addActionListener(
       new JavaAdapter(Packages.java.awt.event.ActionListener, action)
     );
@@ -149,7 +182,9 @@ function applicationStarted(pluginWorkspaceAccess) {
 
   function buildToolbarComponents(originalComponents, projectUrl) {
     var specs = getProjectButtonSpecs(projectUrl);
-    var panel = new Packages.javax.swing.JPanel(new Packages.java.awt.FlowLayout());
+    var panel = new Packages.javax.swing.JPanel(
+      new Packages.java.awt.FlowLayout()
+    );
     panel.setName("oxyruns-panel");
     updateOxyRunsPanelContents(panel, specs);
 
@@ -170,11 +205,11 @@ function applicationStarted(pluginWorkspaceAccess) {
     for (var i = 0; i < specs.length; i++) {
       var spec = specs[i];
       panel.add(
-        createScenarioButton(
+        createScenarioComponent(
           spec.label,
           spec.scenario,
           spec.tooltip,
-          spec.icon
+          spec.icons
         )
       );
     }
