@@ -6,6 +6,10 @@
   "additionalProperties": false,
   "required": ["projects"],
   "properties": {
+    "debug": {
+      "type": "boolean",
+      "description": "Enable debug logging for icon loading and configuration issues."
+    },
     "projects": {
       "type": "object",
       "description": "Map of project keys to button definitions.",
@@ -28,6 +32,26 @@
             "tooltip": {
               "type": "string",
               "minLength": 1
+            },
+            "icons": {
+              "type": "object",
+              "description": "Icon filenames from the local icons folder (next to wsAccess.js). Provide both 24x24 and 48x48 (@2x) variants.",
+              "additionalProperties": false,
+              "required": ["standard", "retina"],
+              "properties": {
+                "standard": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "24x24 icon filename.",
+                  "pattern": "^[^/\\\\]+$"
+                },
+                "retina": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "48x48 icon filename, typically using the @2x suffix (e.g. icon@2x.png).",
+                  "pattern": "^[^/\\\\]+@2x\\.[^/\\\\]+$"
+                }
+              }
             }
           }
         }
